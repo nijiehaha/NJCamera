@@ -6,9 +6,6 @@
 
 @property (strong, nonatomic) AVCaptureSession *session;
 
-// 图像设置
-@property (nonatomic, strong) AVCapturePhotoSettings *photoSettings;
-
 // 预览页
 @property (strong, nonatomic) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
 
@@ -362,9 +359,7 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             [self.view.layer insertSublayer:self.captureVideoPreviewLayer atIndex:0];
             
         });
-        
-        
-        
+                
     }
     
 }
@@ -440,11 +435,21 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
 - (void)startCapturePhotoAction:(void (^)(NJCamera * _Nonnull, UIImage * _Nonnull))onCapture
 {
     
-    self.photoSettings = [AVCapturePhotoSettings photoSettingsWithFormat:@{AVVideoCodecKey:AVVideoCodecTypeJPEG}];
-    
-    [self.photoOutput capturePhotoWithSettings:self.photoSettings delegate:self];
-    
-    self.onCapture = onCapture;
+    dispatch_async(self.sessionQueue, ^{
+        
+        AVCapturePhotoSettings *photoSettings;
+        
+        if ([self.photoOutput.availablePhotoCodecTypes containsObject:AVVideoCodecTypeJPEG]) {
+            photoSettings = [AVCapturePhotoSettings photoSettingsWithFormat:@{AVVideoCodecKey:AVVideoCodecTypeJPEG}];
+        } else {
+            photoSettings = [AVCapturePhotoSettings photoSettings];
+        }
+                
+        [self.photoOutput capturePhotoWithSettings:photoSettings delegate:self];
+        
+        self.onCapture = onCapture;
+        
+    });
     
 }
 
@@ -462,9 +467,11 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             UIImage *image = [UIImage imageWithData:imageData];
             
             if (self.onCapture) {
-                
-                self.onCapture(self, image);
-                
+                /// 回到主线程
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.onCapture(self, image);
+                });
+                                
             }
             
         }
