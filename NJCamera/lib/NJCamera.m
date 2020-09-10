@@ -437,6 +437,11 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     
     dispatch_async(self.sessionQueue, ^{
         
+        /// 捕获照片的时候增加容错判断
+        if (self.session == nil || self.photoOutput == nil || ![self.session.outputs containsObject:self.photoOutput]) {
+            return;
+        }
+        
         AVCapturePhotoSettings *photoSettings;
         
         if ([self.photoOutput.availablePhotoCodecTypes containsObject:AVVideoCodecTypeJPEG]) {
