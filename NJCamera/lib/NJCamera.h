@@ -73,6 +73,10 @@ typedef enum: NSUInteger {
 /// 更改前后置
 - (void)changePosition;
 
+/// 切换闪光灯
+- (void)updateFlashMode:(NJCameraFlash)cameraFlash;
+- (BOOL)isFlashAvailable;
+
 - (BOOL)statusCheck;
 
 @end

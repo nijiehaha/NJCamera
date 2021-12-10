@@ -27,11 +27,24 @@
 // 输出类型
 @property (nonatomic) NJCameraOutputType outPutType;
 
+// 闪光灯
+@property (nonatomic) NJCameraFlash flash;
+
 @end
 
 NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
 
 @implementation NJCamera
+
+- (BOOL)isFlashAvailable
+{
+    return self.videoCaptureDevice.hasFlash && self.videoCaptureDevice.isFlashAvailable;
+}
+
+- (void)updateFlashMode:(NJCameraFlash)cameraFlash
+{
+    self.flash = cameraFlash;
+}
 
 - (void)getQRCodeWith:(void (^)(NJCamera *camera, NSString *result))onQRCode
 {
@@ -448,6 +461,18 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             photoSettings = [AVCapturePhotoSettings photoSettingsWithFormat:@{AVVideoCodecKey:AVVideoCodecTypeJPEG}];
         } else {
             photoSettings = [AVCapturePhotoSettings photoSettings];
+        }
+        
+        if ([self isFlashAvailable]) {
+            AVCaptureFlashMode flashMode;
+            if(self.flash == NJCameraFlashOn) {
+                flashMode = AVCaptureFlashModeOn;
+            } else if(self.flash == NJCameraFlashAuto) {
+                flashMode = AVCaptureFlashModeAuto;
+            } else {
+                flashMode = AVCaptureFlashModeOff;
+            }
+            photoSettings.flashMode = flashMode;
         }
                 
         [self.photoOutput capturePhotoWithSettings:photoSettings delegate:self];
