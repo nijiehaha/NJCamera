@@ -1,6 +1,6 @@
 #import "NJCamera.h"
 
-@interface NJCamera () <AVCapturePhotoCaptureDelegate, AVCaptureMetadataOutputObjectsDelegate>
+@interface NJCamera () <AVCapturePhotoCaptureDelegate, AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic) dispatch_queue_t sessionQueue;
 
@@ -17,7 +17,10 @@
 
 // 图像输出
 @property (nonatomic, strong) AVCapturePhotoOutput *photoOutput;
+// 二维码输出
 @property (nonatomic, strong) AVCaptureMetadataOutput *metadataOutput;
+// 视频流输出
+@property (nonatomic, strong) AVCaptureVideoDataOutput *videoOutput;
 
 @property (copy, nonatomic) NSString *cameraQuality;
 
@@ -82,6 +85,28 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     
 }
 
+// 实时视频流输出
+-(AVCaptureVideoDataOutput *)videoOutput {
+    if (_videoOutput == nil) {
+        _videoOutput = [[AVCaptureVideoDataOutput alloc] init];
+        [_videoOutput setSampleBufferDelegate:self queue:self.sessionQueue];
+        _videoOutput.videoSettings = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA], kCVPixelBufferPixelFormatTypeKey, nil];
+    }
+    return _videoOutput;
+}
+- (UIImage *)imageConvert:(CMSampleBufferRef)sampleBuffer {
+    if (sampleBuffer != nil) {
+        if (CMSampleBufferIsValid(sampleBuffer) && CMSampleBufferGetImageBuffer(sampleBuffer) != nil) {
+            CIImage *ciImage = [[CIImage alloc] initWithCVPixelBuffer:CMSampleBufferGetImageBuffer(sampleBuffer)];
+            return [[UIImage alloc] initWithCIImage:ciImage];
+        } else {
+            return nil;
+        }
+    } else {
+        return nil;
+    }
+}
+
 - (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type
 {
     
@@ -99,9 +124,8 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     _cameraQuality = quality;
     _cameraPosition = position;
     _outPutType = type;
-    
+
     self.sessionQueue = dispatch_queue_create("session queue", DISPATCH_QUEUE_SERIAL);
-    
 }
 
 
@@ -354,6 +378,17 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
                 }
                 
                 break;
+                
+            case NJCameraOutputTypeVideo:
+                if([self.session canAddOutput:self.videoOutput]){
+                    [self.session addOutput:self.videoOutput];
+                } else {
+                    NSError *sessionError = [NSError errorWithDomain:NJCameraErrorDomain code:NJCameraErrorCodeSession userInfo:nil];
+                    [self passError:sessionError];
+                    [self.session commitConfiguration];
+                    return;
+                }
+                break;
             
         }
         
@@ -483,6 +518,8 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     
 }
 
+
+
 #pragma - AVCapturePhotoCaptureDelegate
 - (void)captureOutput:(AVCapturePhotoOutput *)output didFinishProcessingPhoto:(AVCapturePhoto *)photo error:(nullable NSError *)error
 {
@@ -531,6 +568,20 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
         }
         
     }
+    
+}
+
+#pragma - AVCaptureVideoDataOutputSampleBufferDelegate
+- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    
+    if (output == _videoOutput) {
+        UIImage *image = [self imageConvert:sampleBuffer];
+        if (image != nil) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.onCapture(self, image);
+            });
+        }
+    }    
     
 }
 

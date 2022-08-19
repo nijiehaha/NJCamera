@@ -8,7 +8,8 @@ NS_ASSUME_NONNULL_BEGIN
 typedef enum: NSUInteger {
     
     NJCameraOutputTypPhoto, // 照片输出
-    NJCameraOutputTypeQRCode // 二维码
+    NJCameraOutputTypeQRCode, // 二维码
+    NJCameraOutputTypeVideo  // 实时视频流
     
 } NJCameraOutputType;
 
