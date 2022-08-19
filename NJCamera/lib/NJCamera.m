@@ -94,11 +94,12 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     }
     return _videoOutput;
 }
+
 - (UIImage *)imageConvert:(CMSampleBufferRef)sampleBuffer {
     if (sampleBuffer != nil) {
         if (CMSampleBufferIsValid(sampleBuffer) && CMSampleBufferGetImageBuffer(sampleBuffer) != nil) {
             CIImage *ciImage = [[CIImage alloc] initWithCVPixelBuffer:CMSampleBufferGetImageBuffer(sampleBuffer)];
-            return [[UIImage alloc] initWithCIImage:ciImage];
+            return [[UIImage alloc] initWithCIImage:[ciImage imageByApplyingCGOrientation:(kCGImagePropertyOrientationRight)]];
         } else {
             return nil;
         }
@@ -573,7 +574,6 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
 
 #pragma - AVCaptureVideoDataOutputSampleBufferDelegate
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    
     if (output == _videoOutput) {
         UIImage *image = [self imageConvert:sampleBuffer];
         if (image != nil) {
@@ -582,7 +582,6 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             });
         }
     }    
-    
 }
 
 - (BOOL)statusCheck{
