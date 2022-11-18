@@ -33,6 +33,9 @@
 // 闪光灯
 @property (nonatomic) NJCameraFlash flash;
 
+// 预览页方向
+@property (nonatomic) AVCaptureVideoOrientation videoOrientation;
+
 @end
 
 NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
@@ -108,23 +111,21 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     }
 }
 
-- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type
+- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation
 {
-    
     if (self = [super initWithNibName:nil bundle:nil]) {
-        [self setupWithQuality:quality position:position OutputType:type];
+        [self setupWithQuality:quality position:position OutputType:type videoOrientation:orientation];
     }
-    
     return self;
-    
 }
 
 - (void)setupWithQuality:(NSString *)quality
-                position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type
+                position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation
 {
     _cameraQuality = quality;
     _cameraPosition = position;
     _outPutType = type;
+    _videoOrientation = orientation;
 
     self.sessionQueue = dispatch_queue_create("session queue", DISPATCH_QUEUE_SERIAL);
 }
@@ -398,15 +399,14 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
         [self.session startRunning];
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            
             // 预览layer
             CGRect bounds = self.view.layer.bounds;
             self.captureVideoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.session];
             self.captureVideoPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            self.captureVideoPreviewLayer.connection.videoOrientation = self.videoOrientation;
             self.captureVideoPreviewLayer.bounds = bounds;
             self.captureVideoPreviewLayer.position = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
             [self.view.layer insertSublayer:self.captureVideoPreviewLayer atIndex:0];
-            
         });
                 
     }
@@ -578,10 +578,15 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
         UIImage *image = [self imageConvert:sampleBuffer];
         if (image != nil) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                self.onCapture(self, image);
+                self.onCapture(self, [UIImage imageWithCGImage:[self getImageCG:image]]);
             });
         }
     }    
+}
+- (CGImageRef)getImageCG:(UIImage *)image{
+  CIContext *context = [CIContext contextWithOptions:nil];
+  CGImageRef imageRef = [context createCGImage:image.CIImage fromRect:[image.CIImage extent]];
+  return imageRef;
 }
 
 - (BOOL)statusCheck{

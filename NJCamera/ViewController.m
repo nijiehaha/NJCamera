@@ -11,7 +11,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    NJCamera *camera = [[NJCamera alloc] initWithQuality:AVCaptureSessionPresetPhoto position:NJCameraPositionRear OutputType:NJCameraOutputTypeVideo];
+    NJCamera *camera = [[NJCamera alloc] initWithQuality:AVCaptureSessionPresetPhoto position:NJCameraPositionRear OutputType:NJCameraOutputTypeVideo videoOrientation:(AVCaptureVideoOrientationPortrait)];
     
     [camera nj_attachToViewController:self withFrame:self.view.frame];
     

@@ -1,8 +1,6 @@
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 
-
-
 NS_ASSUME_NONNULL_BEGIN
 
 typedef enum: NSUInteger {
@@ -50,7 +48,7 @@ typedef enum: NSUInteger {
 
 @interface NJCamera : UIViewController
 
-- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type;
+- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation;
 
 // 把NJCamera附到一个VCs上
 - (void)nj_attachToViewController:(UIViewController *)vc withFrame:(CGRect)frame;
