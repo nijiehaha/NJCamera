@@ -578,15 +578,17 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
         UIImage *image = [self imageConvert:sampleBuffer];
         if (image != nil) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                self.onCapture(self, [UIImage imageWithCGImage:[self getImageCG:image]]);
+                self.onCapture(self, [self getImageFrom:image]);
             });
         }
     }    
 }
-- (CGImageRef)getImageCG:(UIImage *)image{
+-(UIImage *)getImageFrom:(UIImage *)image{
   CIContext *context = [CIContext contextWithOptions:nil];
   CGImageRef imageRef = [context createCGImage:image.CIImage fromRect:[image.CIImage extent]];
-  return imageRef;
+  UIImage *imageTmp = [UIImage imageWithCGImage:imageRef];
+  CGImageRelease(imageRef);
+  return imageTmp;
 }
 
 - (BOOL)statusCheck{
