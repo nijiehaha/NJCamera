@@ -36,6 +36,8 @@
 // 预览页方向
 @property (nonatomic) AVCaptureVideoOrientation videoOrientation;
 
+@property (nonatomic, assign) BOOL isSupportAutoVideorientation;
+
 @end
 
 NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
@@ -111,37 +113,39 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     }
 }
 
-- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation
+- (instancetype)initWithQuality:(NSString *)quality
+                       position:(NJCameraPosition)position
+                     OutputType:(NJCameraOutputType)type
+               videoOrientation:(AVCaptureVideoOrientation)orientation
+   isSupportAutoVideorientation:(BOOL)isSupportAutoVideorientation
 {
     if (self = [super initWithNibName:nil bundle:nil]) {
-        [self setupWithQuality:quality position:position OutputType:type videoOrientation:orientation];
+        [self setupWithQuality:quality position:position OutputType:type videoOrientation:orientation isSupportAutoVideorientation:isSupportAutoVideorientation];
     }
     return self;
 }
 
 - (void)setupWithQuality:(NSString *)quality
-                position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation
+                position:(NJCameraPosition)position
+              OutputType:(NJCameraOutputType)type
+        videoOrientation:(AVCaptureVideoOrientation)orientation
+        isSupportAutoVideorientation:(BOOL)isSupportAutoVideorientation
 {
     _cameraQuality = quality;
     _cameraPosition = position;
     _outPutType = type;
     _videoOrientation = orientation;
-
+    _isSupportAutoVideorientation = isSupportAutoVideorientation;
     self.sessionQueue = dispatch_queue_create("session queue", DISPATCH_QUEUE_SERIAL);
 }
 
 
 - (void)nj_attachToViewController:(UIViewController *)vc withFrame:(CGRect)frame
 {
-    
     [vc addChildViewController:self];
-    
     self.view.frame = frame;
-    
     [vc.view addSubview:self.view];
-    
     [self didMoveToParentViewController:vc];
-    
 }
 
 - (void)start
@@ -403,14 +407,53 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             CGRect bounds = self.view.layer.bounds;
             self.captureVideoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.session];
             self.captureVideoPreviewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-            self.captureVideoPreviewLayer.connection.videoOrientation = self.videoOrientation;
-            self.captureVideoPreviewLayer.bounds = bounds;
+            
+            /// 判断是否支持自动修改方向
+            if (self.isSupportAutoVideorientation) {
+                [self changeVideoOrientation:bounds];
+            } else {
+                self.captureVideoPreviewLayer.connection.videoOrientation = self.videoOrientation;
+            }
+            
+            self.captureVideoPreviewLayer.frame = bounds;
             self.captureVideoPreviewLayer.position = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
             [self.view.layer insertSublayer:self.captureVideoPreviewLayer atIndex:0];
         });
                 
     }
     
+}
+
+/// 修改摄像头方向
+- (void)changeVideoOrientation:(CGRect)frame {
+    self.captureVideoPreviewLayer.frame = frame;
+    self.view.frame = frame;
+    AVCaptureConnection *previewLayerConnection = self.captureVideoPreviewLayer.connection;
+    UIInterfaceOrientation interfaceOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    if ([previewLayerConnection isVideoOrientationSupported]) {
+        switch (interfaceOrientation) {
+            case UIInterfaceOrientationPortrait:
+                [previewLayerConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
+                self.videoOrientation = AVCaptureVideoOrientationPortrait;
+                break;
+            case UIInterfaceOrientationLandscapeRight:
+                [previewLayerConnection setVideoOrientation:AVCaptureVideoOrientationLandscapeRight];
+                self.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+                break;
+            case UIInterfaceOrientationLandscapeLeft:
+                [previewLayerConnection setVideoOrientation:AVCaptureVideoOrientationLandscapeLeft];
+                self.videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+                break;
+            case UIInterfaceOrientationPortraitUpsideDown:
+                [previewLayerConnection setVideoOrientation:AVCaptureVideoOrientationPortraitUpsideDown];
+                self.videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+                break;
+            default:
+                [previewLayerConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
+                self.videoOrientation = AVCaptureVideoOrientationPortrait;
+                break;
+        }
+    }
 }
 
 - (AVCaptureDevice *)cameraWithPostion:(AVCaptureDevicePosition)position{

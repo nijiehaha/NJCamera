@@ -48,7 +48,7 @@ typedef enum: NSUInteger {
 
 @interface NJCamera : UIViewController
 
-- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation;
+- (instancetype)initWithQuality:(NSString *)quality position:(NJCameraPosition)position OutputType:(NJCameraOutputType)type videoOrientation:(AVCaptureVideoOrientation)orientation isSupportAutoVideorientation:(BOOL)isSupportAutoVideorientation;
 
 // 把NJCamera附到一个VCs上
 - (void)nj_attachToViewController:(UIViewController *)vc withFrame:(CGRect)frame;
@@ -71,6 +71,9 @@ typedef enum: NSUInteger {
 
 /// 更改前后置
 - (void)changePosition;
+
+/// 修改摄像头方向
+- (void)changeVideoOrientation:(CGRect)frame;
 
 /// 切换闪光灯
 - (void)updateFlashMode:(NJCameraFlash)cameraFlash;
