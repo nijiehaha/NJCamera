@@ -81,6 +81,9 @@ typedef enum: NSUInteger {
 
 - (BOOL)statusCheck;
 
+/// 手电筒开关
+- (void)toggleTorch:(BOOL)on;
+
 @end
 
 NS_ASSUME_NONNULL_END

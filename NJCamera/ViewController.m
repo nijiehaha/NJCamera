@@ -5,6 +5,8 @@
 
 @property (nonatomic, strong) NJCamera *camera;
 
+@property (nonatomic, assign) BOOL isTorchOn;
+
 @end
 
 @implementation ViewController
@@ -23,6 +25,20 @@
         NSLog(@"result:%@", image);
     };
     
+    UIButton *toggleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [toggleButton setTitle:@"Toggle Torch" forState:UIControlStateNormal];
+    [toggleButton addTarget:self action:@selector(toggleTorchButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+    toggleButton.frame = CGRectMake(200, 200, 200, 200);
+    toggleButton.backgroundColor = [UIColor blueColor];
+    toggleButton.center = self.view.center;
+    
+    [self.view addSubview:toggleButton];
+    
+}
+
+- (void)toggleTorchButtonTapped {
+    self.isTorchOn = !self.isTorchOn;
+    [self.camera toggleTorch:self.isTorchOn];
 }
 
 - (void)viewDidLayoutSubviews {

@@ -687,4 +687,19 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
     return NO;
 }
 
+- (void)toggleTorch:(BOOL)on {
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    if ([device hasTorch]) {
+        NSError *error = nil;
+        if ([device lockForConfiguration:&error]) {
+            [device setTorchMode:on ? AVCaptureTorchModeOn : AVCaptureTorchModeOff];
+            [device unlockForConfiguration];
+        } else {
+            NSLog(@"Error locking for configuration: %@", error.localizedDescription);
+        }
+    } else {
+        NSLog(@"Device does not support torch.");
+    }
+}
+
 @end
