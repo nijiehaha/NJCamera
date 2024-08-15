@@ -7,7 +7,9 @@ typedef enum: NSUInteger {
     
     NJCameraOutputTypPhoto, // 照片输出
     NJCameraOutputTypeQRCode, // 二维码
-    NJCameraOutputTypeVideo  // 实时视频流
+    NJCameraOutputTypeVideo,  // 实时视频流
+    
+    NJCameraOutputTypePhotoVideo // 视频流和照片输出
     
 } NJCameraOutputType;
 

@@ -395,6 +395,17 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
                     return;
                 }
                 break;
+                
+            case NJCameraOutputTypePhotoVideo:
+                if ([self.session canAddOutput:self.photoOutput] && [self.session canAddOutput:self.videoOutput]) {
+                    [self.session addOutput:self.photoOutput];
+                    [self.session addOutput:self.videoOutput];
+                } else {
+                    NSError *sessionError = [NSError errorWithDomain:NJCameraErrorDomain code:NJCameraErrorCodeSession userInfo:nil];
+                    [self passError:sessionError];
+                    [self.session commitConfiguration];
+                    return;
+                }
             
         }
         
