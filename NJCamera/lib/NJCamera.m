@@ -2,6 +2,9 @@
 
 @interface NJCamera () <AVCapturePhotoCaptureDelegate, AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 
+/// 捕获照片
+@property (nonatomic, copy) void (^onPhotoCapture)(NJCamera *camera, UIImage *image);
+
 @property (nonatomic) dispatch_queue_t sessionQueue;
 
 @property (strong, nonatomic) AVCaptureSession *session;
@@ -567,7 +570,7 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
                 
         [self.photoOutput capturePhotoWithSettings:photoSettings delegate:self];
         
-        self.onCapture = onCapture;
+        self.onPhotoCapture = onCapture;
         
     });
     
@@ -591,7 +594,7 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             if (self.onCapture) {
                 /// 回到主线程
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.onCapture(self, image);
+                    self.onPhotoCapture(self, image);
                 });
                                 
             }
