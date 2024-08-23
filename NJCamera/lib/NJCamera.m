@@ -538,7 +538,7 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
 }
 
 // 捕捉静态照片
-- (void)startCapturePhotoAction:(void (^)(NJCamera * _Nonnull, UIImage * _Nonnull))onCapture
+- (void)startCapturePhotoAction:(void (^)(NJCamera * _Nonnull, UIImage * _Nonnull))onPhotoCapture
 {
     
     dispatch_async(self.sessionQueue, ^{
@@ -570,7 +570,7 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
                 
         [self.photoOutput capturePhotoWithSettings:photoSettings delegate:self];
         
-        self.onPhotoCapture = onCapture;
+        self.onPhotoCapture = onPhotoCapture;
         
     });
     
@@ -591,13 +591,12 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
             
             UIImage *image = [UIImage imageWithData:imageData];
             
-            if (self.onCapture) {
-                /// 回到主线程
-                dispatch_async(dispatch_get_main_queue(), ^{
+            /// 回到主线程
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (self.onPhotoCapture) {
                     self.onPhotoCapture(self, image);
-                });
-                                
-            }
+                }
+            });
             
         }
         
@@ -635,7 +634,9 @@ NSString *const NJCameraErrorDomain = @"NJCameraErrorDomain";
         UIImage *image = [self imageConvert:sampleBuffer];
         if (image != nil) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                self.onCapture(self, [self getImageFrom:image]);
+                if (self.onCapture) {
+                    self.onCapture(self, [self getImageFrom:image]);
+                }
             });
         }
     }    

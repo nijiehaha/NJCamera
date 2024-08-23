@@ -66,7 +66,7 @@ typedef enum: NSUInteger {
 @property (nonatomic, copy) void (^onQRCode)(NJCamera *camera, NSString *result);
 
 /// 捕获照片
-- (void)startCapturePhotoAction:(void (^)(NJCamera *camera, UIImage *image))onCapture;
+- (void)startCapturePhotoAction:(void (^)(NJCamera * _Nonnull, UIImage * _Nonnull))onPhotoCapture;
 
 /// 获取二维码内容
 - (void)getQRCodeWith:(void (^)(NJCamera *camera, NSString *result))onQRCode;
